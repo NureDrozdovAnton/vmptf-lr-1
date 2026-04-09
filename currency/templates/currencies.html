@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if has_timestamp %}
+        Currencies at {{ now }}
+    {% else %}
+        Currencies
+    {% endif %}
+{% endblock %}
+
+
+{% block content %}
+<div class="container">
+    <div class="flex justify-between items-center">
+        <h1>Currencies</h1>
+        <div class="flex items-center gap-4">
+            {% if has_timestamp %}
+                <span>Showing rates at {{ now }}</span>
+            {% else %}
+                <a target="_blank" href="?at={{ now|date:'Y-m-d\TH:i' }}" class="ghost">Get permalink</a>
+            {% endif %}
+            <button onclick="document.getElementById('create-modal').showModal()">
+                Create
+            </button>
+        </div>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Currency</th>
+                <th>Buy</th>
+                <th>Sell</th>
+                <th>Started At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rate in exchange_rates %}
+            <tr>
+                <td>{{ rate.to_currency.code }}</td>
+                <td>{{ rate.buy_rate }}</td>
+                <td>{{ rate.sell_rate }}</td>
+                <td>{{ rate.started_at }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <dialog id="create-modal">
+        <h3>New Exchange Rate</h3>
+        <form method="post" action="{% url 'create_currency' %}">
+            {% csrf_token %}
+            <datalist id="currency-codes">
+                {% for currency in currencies %}
+                <option value="{{ currency.code }}" data-name="{{ currency.name }}">
+                {% endfor %}
+            </datalist>
+
+            <label>
+                <span>Currency Code</span>
+                <input type="text" name="code" list="currency-codes" placeholder="Enter a 3-letter code" required>
+            </label>
+
+            <label>
+                <span>Currency Name</span>
+                <input type="text" name="name" placeholder="Currency Name" autocomplete="off">
+            </label>
+
+            <label>
+                <span>Buy Rate</span>
+                <input type="number" name="buy_rate" step="0.01" placeholder="Buy Rate" required>
+            </label>
+
+            <label>
+                <span>Sell Rate</span>
+                <input type="number" name="sell_rate" step="0.01" placeholder="Sell Rate" required>
+            </label>
+
+            <div class="flex justify-between">
+                <button type="button" class="ghost" onclick="document.getElementById('create-modal').close()">Cancel</button>
+                <button type="submit">Save</button>
+            </div>
+        </form>
+    </dialog>
+    <script defer>
+        (() => {
+            const codeInput = document.querySelector('input[name="code"]');
+            const nameInput = document.querySelector('input[name="name"]');
+            const datalist = document.getElementById('currency-codes');
+
+            codeInput.addEventListener('input', () => {
+                const code = codeInput.value.toUpperCase();
+                const option = datalist.querySelector(`option[value="${code}"]`);
+
+                if (option) {
+                    nameInput.value = option.dataset.name;
+                } else {
+                    nameInput.value = '';
+                }
+            });
+        })();
+    </script>
+</div>
+{% endblock %}

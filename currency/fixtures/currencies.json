@@ -1,0 +1,10 @@
+[
+    {
+        "model": "currency.currency",
+        "pk": 1,
+        "fields": {
+            "name": "Ukrainian hryvnia",
+            "code": "UAH"
+        }
+    }
+]
